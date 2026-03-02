@@ -44,6 +44,7 @@ jobs:
       - name: tfsec security scan (SARIF, non-blocking)
         run: |
           docker run --rm \
+            --user "$(id -u):$(id -g)" \
             -v "${{ github.workspace }}:/src" \
             aquasec/tfsec:latest \
             /src/terraform \
