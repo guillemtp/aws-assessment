@@ -121,7 +121,7 @@ Includes:
 - Terraform format check
 - Terraform validate
 - Security scan (`tfsec`)
-- Terraform init with remote S3 backend (when required AWS/app/backend secrets are configured)
+- Terraform init with remote S3 backend
 - Terraform plan/apply
 - Automated pytest e2e execution with JUnit report output
 - Test report publication in GitHub Actions summary/checks
@@ -130,16 +130,13 @@ Includes:
 Required CI secrets for deploy/test/destroy:
 - `AWS_ACCESS_KEY_ID`
 - `AWS_SECRET_ACCESS_KEY`
-- `PROJECT_NAME` (optional, defaults to `aws-assessment`)
-- `CANDIDATE_EMAIL`
 - `TEST_USER_PASSWORD`
-- `REPO_OWNER` (GitHub username/org used as `github_user` in Terraform payload)
 
 Recommended CI repository variables (non-sensitive):
+- `PROJECT_NAME` (optional, defaults to `aws-assessment`)
+- `CANDIDATE_EMAIL`
+- `REPO_OWNER` (GitHub username/org used as `github_user` in Terraform payload)
 - `AWS_REGION` (default `us-east-1`)
-
-The workflow derives backend bucket name automatically as:
-`aws-assessment-ci-tfstate-<account_id>-<AWS_REGION>`.
 
 ## CI bootstrapping (AWS CLI)
 

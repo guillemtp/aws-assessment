@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TF_IN_AUTOMATION: "true"
-      PROJECT_NAME: ${{ secrets.PROJECT_NAME != '' && secrets.PROJECT_NAME || 'aws-assessment' }}
+      PROJECT_NAME: ${{ vars.PROJECT_NAME != '' && vars.PROJECT_NAME || (secrets.PROJECT_NAME != '' && secrets.PROJECT_NAME || 'aws-assessment') }}
       AWS_REGION: ${{ vars.AWS_REGION != '' && vars.AWS_REGION || 'us-east-1' }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

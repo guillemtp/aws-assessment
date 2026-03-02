@@ -65,6 +65,28 @@ cat > "${tmp_policy_file}" <<POLICY
       "Resource": "arn:aws:sns:us-east-1:637226132752:Candidate-Verification-Topic"
     },
     {
+      "Sid": "TerraformStateBucketList",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket",
+        "s3:GetBucketLocation",
+        "s3:GetBucketVersioning"
+      ],
+      "Resource": "arn:aws:s3:::aws-assessment-ci-tfstate-*"
+    },
+    {
+      "Sid": "TerraformStateObjectReadWrite",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:GetObjectVersion",
+        "s3:DeleteObjectVersion"
+      ],
+      "Resource": "arn:aws:s3:::aws-assessment-ci-tfstate-*/*"
+    },
+    {
       "Sid": "IamForAssessmentRolesOnly",
       "Effect": "Allow",
       "Action": [
