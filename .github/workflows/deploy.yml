@@ -42,15 +42,26 @@ jobs:
         run: terraform -chdir=terraform validate
 
       - name: tfsec security scan (SARIF, non-blocking)
-        uses: aquasecurity/tfsec-action@v1.0.3
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/src" \
+            aquasec/tfsec:latest \
+            /src/terraform \
+            --format sarif \
+            --out /src/terraform/tfsec.sarif \
+            --soft-fail
+
+      - name: Upload tfsec SARIF artifact
+        if: ${{ always() && hashFiles('terraform/tfsec.sarif') != '' }}
+        uses: actions/upload-artifact@v4
         with:
-          working_directory: terraform
-          format: sarif
-          sarif_file: tfsec.sarif
-          soft_fail: true
+          name: tfsec-sarif
+          path: terraform/tfsec.sarif
+          if-no-files-found: error
 
       - name: Upload tfsec SARIF to Code Scanning
         if: ${{ always() && hashFiles('terraform/tfsec.sarif') != '' }}
+        continue-on-error: true
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: terraform/tfsec.sarif
