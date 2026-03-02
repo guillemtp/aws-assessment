@@ -17,9 +17,9 @@ This repository implements the Unleash live assessment using Terraform with a mu
 
 * Terraform was chosen for simplicity and speed. It is not necessarily the best approach from a Lambda development workflow perspective. Depending on Lambda development cost, SST or Serverless Framework could be a better fit.
 * Deployments are scoped by `PROJECT_NAME`. This variable acts as the environment identifier.
-* The deployment includes a dry-run mode to avoid publishing to the SNS topic during test or development cycles.
+* The deployment includes a dry-run mode to avoid publishing to the SNS topic during test or development cycles. Another option could be to mock it creating one for testing.
 * tfsec security checks are integrated into the pipeline and can be reviewed at https://github.com/guillemtp/aws-assessment/security/code-scanning
-* A full CI deployment was intentionally included to integrate end-to-end tests into CI. Example run: https://github.com/guillemtp/aws-assessment/actions/runs/22571792041/job/65381375506
+* A full CI deployment was intentionally included to integrate end-to-end tests into CI. Example run: https://github.com/guillemtp/aws-assessment/actions/runs/22573772384/job/65388054633
 * For local usage, Docker plus a Makefile wrapper was chosen to simplify command execution.
 * Even though the assessment explicitly allowed Terraform, Serverless Framework, or CDK, Terraform was selected because it provides a clean and modular solution reusable across environments.
 
