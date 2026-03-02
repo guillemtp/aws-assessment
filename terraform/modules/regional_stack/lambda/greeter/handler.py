@@ -7,7 +7,6 @@ import boto3
 
 
 dynamodb = boto3.resource("dynamodb")
-sns = boto3.client("sns")
 
 
 def handler(event, context):
@@ -34,8 +33,11 @@ def handler(event, context):
     }
 
     if sns_publish_enabled:
+        topic_arn = os.environ["VERIFICATION_TOPIC_ARN"]
+        topic_region = topic_arn.split(":")[3]
+        sns = boto3.client("sns", region_name=topic_region)
         sns.publish(
-            TopicArn=os.environ["VERIFICATION_TOPIC_ARN"],
+            TopicArn=topic_arn,
             Message=json.dumps(payload),
         )
     else:

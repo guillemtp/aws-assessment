@@ -229,7 +229,7 @@ resource "aws_ecs_task_definition" "publisher" {
       image      = "public.ecr.aws/aws-cli/aws-cli:2.17.52"
       entryPoint = ["/bin/sh", "-c"]
       command = [
-        "PAYLOAD=$(printf '{\\\"email\\\":\\\"%s\\\",\\\"source\\\":\\\"ECS\\\",\\\"region\\\":\\\"%s\\\",\\\"repo\\\":\\\"%s\\\"}' \"$EMAIL\" \"$EXEC_REGION\" \"$REPO_URL\"); if [ \"$SNS_PUBLISH_ENABLED\" = \"true\" ]; then aws sns publish --topic-arn \"$TOPIC_ARN\" --message \"$PAYLOAD\" --region \"$EXEC_REGION\"; else echo \"SNS dry run payload: $PAYLOAD\"; fi"
+        "set -eu; TOPIC_REGION=$(echo \"$TOPIC_ARN\" | cut -d: -f4); echo \"[ecs-sns] starting exec_region=$EXEC_REGION topic_region=$TOPIC_REGION sns_publish_enabled=$SNS_PUBLISH_ENABLED\"; PAYLOAD=$(printf '{\\\"email\\\":\\\"%s\\\",\\\"source\\\":\\\"ECS\\\",\\\"region\\\":\\\"%s\\\",\\\"repo\\\":\\\"%s\\\"}' \"$EMAIL\" \"$EXEC_REGION\" \"$REPO_URL\"); echo \"[ecs-sns] payload=$PAYLOAD\"; if [ \"$SNS_PUBLISH_ENABLED\" = \"true\" ]; then if aws sns publish --topic-arn \"$TOPIC_ARN\" --message \"$PAYLOAD\" --region \"$TOPIC_REGION\" --output json > /tmp/publish.json; then echo \"[ecs-sns] publish succeeded: $(cat /tmp/publish.json)\"; else rc=$?; echo \"[ecs-sns] publish failed with exit_code=$rc\"; exit $rc; fi; else echo \"[ecs-sns] dry run enabled: skipping SNS publish\"; fi; echo \"[ecs-sns] completed\""
       ]
       essential = true
       environment = [
