@@ -21,16 +21,16 @@ TEST_PASSWORD ?= $(TEST_USER_PASSWORD)
 strip_quotes = $(patsubst "%",%,$(patsubst '%',%,$(1)))
 PROJECT_NAME := $(call strip_quotes,$(PROJECT_NAME))
 CANDIDATE_EMAIL := $(call strip_quotes,$(CANDIDATE_EMAIL))
-GITHUB_USER := $(call strip_quotes,$(GITHUB_USER))
+REPO_OWNER := $(call strip_quotes,$(REPO_OWNER))
 TEST_USER_PASSWORD := $(call strip_quotes,$(TEST_USER_PASSWORD))
 TEST_USERNAME := $(call strip_quotes,$(TEST_USERNAME))
 TEST_PASSWORD := $(call strip_quotes,$(TEST_PASSWORD))
 AWS_PROFILE := $(call strip_quotes,$(AWS_PROFILE))
 BACKEND_CONFIG := $(call strip_quotes,$(BACKEND_CONFIG))
 
-export AWS_PROFILE AWS_REGION AWS_DEFAULT_REGION AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
+export AWS_PROFILE AWS_REGION AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
 export BACKEND_CONFIG PROJECT_NAME SNS_PUBLISH_ENABLED
-export CANDIDATE_EMAIL GITHUB_USER TEST_USER_PASSWORD TEST_USERNAME TEST_PASSWORD TFVARS_FILE OUTPUTS_JSON TF_DOCKER_IMAGE
+export CANDIDATE_EMAIL REPO_OWNER TEST_USER_PASSWORD TEST_USERNAME TEST_PASSWORD TFVARS_FILE OUTPUTS_JSON TF_DOCKER_IMAGE
 
 TF_DOCKER_BASE = docker run --rm \
 	-i \
@@ -39,7 +39,6 @@ TF_DOCKER_BASE = docker run --rm \
 	-w /work/$(TERRAFORM_DIR) \
 	-e AWS_PROFILE \
 	-e AWS_REGION \
-	-e AWS_DEFAULT_REGION \
 	-e AWS_ACCESS_KEY_ID \
 	-e AWS_SECRET_ACCESS_KEY \
 	-e AWS_SESSION_TOKEN \
@@ -76,19 +75,19 @@ help:
 	@echo "  TERRAFORM_DIR=terraform -> IaC root folder"
 	@echo "  BACKEND_CONFIG=backend.hcl (or terraform/backend.hcl) -> remote S3 backend config file"
 	@echo "  PROJECT_NAME=aws-assessment -> used for both resource names and state key"
-	@echo "  CANDIDATE_EMAIL/GITHUB_USER/TEST_USER_PASSWORD -> required for tfvars generation"
+	@echo "  CANDIDATE_EMAIL/REPO_OWNER/TEST_USER_PASSWORD -> required for tfvars generation"
 
 tfvars:
 	@test -n "$(PROJECT_NAME)" || (echo "PROJECT_NAME is required" && exit 1)
 	@test -n "$(CANDIDATE_EMAIL)" || (echo "CANDIDATE_EMAIL is required" && exit 1)
-	@test -n "$(GITHUB_USER)" || (echo "GITHUB_USER is required" && exit 1)
+	@test -n "$(REPO_OWNER)" || (echo "REPO_OWNER is required" && exit 1)
 	@test -n "$(TEST_USER_PASSWORD)" || (echo "TEST_USER_PASSWORD is required" && exit 1)
 	@mkdir -p "$(TERRAFORM_DIR)"
 	@{ \
 		esc() { printf '%s' "$$1" | sed 's/\\/\\\\/g; s/\"/\\"/g'; }; \
 		echo "project_name           = \"`esc "$(PROJECT_NAME)"`\""; \
 		echo "candidate_email        = \"`esc "$(CANDIDATE_EMAIL)"`\""; \
-		echo "github_user            = \"`esc "$(GITHUB_USER)"`\""; \
+		echo "github_user            = \"`esc "$(REPO_OWNER)"`\""; \
 		echo "test_user_password     = \"`esc "$(TEST_USER_PASSWORD)"`\""; \
 		echo "sns_publish_enabled    = $(SNS_PUBLISH_ENABLED)"; \
 		if [ -n "$(AWS_PROFILE)" ]; then echo "aws_profile            = \"`esc "$(AWS_PROFILE)"`\""; fi; \
@@ -139,7 +138,6 @@ tests: tf-output
 		-w /work \
 		-e AWS_PROFILE \
 		-e AWS_REGION \
-		-e AWS_DEFAULT_REGION \
 		-e AWS_ACCESS_KEY_ID \
 		-e AWS_SECRET_ACCESS_KEY \
 		-e AWS_SESSION_TOKEN \

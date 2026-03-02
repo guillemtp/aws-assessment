@@ -15,11 +15,14 @@ jobs:
     env:
       TF_IN_AUTOMATION: "true"
       PROJECT_NAME: ${{ secrets.PROJECT_NAME != '' && secrets.PROJECT_NAME || 'aws-assessment' }}
-      TF_STATE_REGION: ${{ secrets.TF_STATE_REGION != '' && secrets.TF_STATE_REGION || 'us-east-1' }}
+      AWS_REGION: ${{ vars.AWS_REGION != '' && vars.AWS_REGION || 'us-east-1' }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       CANDIDATE_EMAIL: ${{ secrets.CANDIDATE_EMAIL }}
       TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
-      GITHUB_USER: ${{ secrets.GITHUB_USER }}
+      REPO_OWNER: ${{ secrets.REPO_OWNER }}
       SNS_PUBLISH_ENABLED: "false"
+      HAS_AWS_CREDS: ${{ secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' }}
 
     steps:
       - name: Checkout
@@ -43,65 +46,43 @@ jobs:
           working_directory: terraform
 
       - name: Configure AWS credentials (optional)
-        if: ${{ secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' }}
+        if: ${{ env.HAS_AWS_CREDS == 'true' }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-      - name: Generate .env from CI secrets
-        if: ${{ secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' && secrets.TF_STATE_BUCKET != '' && secrets.CANDIDATE_EMAIL != '' && secrets.TEST_USER_PASSWORD != '' && secrets.GITHUB_USER != '' }}
-        run: |
-          cat > .env <<EOF
-          PROJECT_NAME=${PROJECT_NAME}
-          CANDIDATE_EMAIL=${CANDIDATE_EMAIL}
-          GITHUB_USER=${GITHUB_USER}
-          TEST_USER_PASSWORD=${TEST_USER_PASSWORD}
-          SNS_PUBLISH_ENABLED=${SNS_PUBLISH_ENABLED}
-          AWS_REGION=us-east-1
-          AWS_DEFAULT_REGION=us-east-1
-          EOF
-
-      - name: Generate terraform.tfvars from .env
-        if: ${{ secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' && secrets.TF_STATE_BUCKET != '' && secrets.CANDIDATE_EMAIL != '' && secrets.TEST_USER_PASSWORD != '' && secrets.GITHUB_USER != '' }}
+      - name: Generate terraform.tfvars from environment
         run: make tfvars
 
       - name: Terraform Init (remote backend)
-        if: ${{ secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' && secrets.TF_STATE_BUCKET != '' && secrets.CANDIDATE_EMAIL != '' && secrets.TEST_USER_PASSWORD != '' && secrets.GITHUB_USER != '' }}
         run: |
           terraform -chdir=terraform init -reconfigure \
-            -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
-            -backend-config="region=${{ env.TF_STATE_REGION }}" \
+            -backend-config=backend.hcl \
             -backend-config="key=${{ env.PROJECT_NAME }}/terraform.tfstate"
 
       - name: Terraform Plan (optional when secrets are set)
-        if: ${{ secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' && secrets.TF_STATE_BUCKET != '' && secrets.CANDIDATE_EMAIL != '' && secrets.TEST_USER_PASSWORD != '' && secrets.GITHUB_USER != '' }}
         run: |
           terraform -chdir=terraform plan \
             -input=false \
             -out=tfplan
 
       - name: Terraform Apply
-        if: ${{ secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' && secrets.TF_STATE_BUCKET != '' && secrets.CANDIDATE_EMAIL != '' && secrets.TEST_USER_PASSWORD != '' && secrets.GITHUB_USER != '' }}
         run: terraform -chdir=terraform apply -input=false -auto-approve tfplan
 
       - name: Export Terraform Outputs
-        if: ${{ secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' && secrets.TF_STATE_BUCKET != '' && secrets.CANDIDATE_EMAIL != '' && secrets.TEST_USER_PASSWORD != '' && secrets.GITHUB_USER != '' }}
         run: terraform -chdir=terraform output -json > outputs.json
 
       - name: Setup Python
-        if: ${{ secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' && secrets.TF_STATE_BUCKET != '' && secrets.CANDIDATE_EMAIL != '' && secrets.TEST_USER_PASSWORD != '' && secrets.GITHUB_USER != '' }}
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       - name: Install test dependencies
-        if: ${{ secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' && secrets.TF_STATE_BUCKET != '' && secrets.CANDIDATE_EMAIL != '' && secrets.TEST_USER_PASSWORD != '' && secrets.GITHUB_USER != '' }}
         run: pip install -r tests/requirements.txt
 
       - name: Run pytest e2e tests
-        if: ${{ secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' && secrets.TF_STATE_BUCKET != '' && secrets.CANDIDATE_EMAIL != '' && secrets.TEST_USER_PASSWORD != '' && secrets.GITHUB_USER != '' }}
         env:
           TEST_USERNAME: ${{ env.CANDIDATE_EMAIL }}
           TEST_PASSWORD: ${{ env.TEST_USER_PASSWORD }}
@@ -109,11 +90,11 @@ jobs:
           mkdir -p test-results
           pytest -s -vv tests \
             --outputs-json outputs.json \
-            --auth-region us-east-1 \
+            --auth-region "${AWS_REGION}" \
             --junitxml test-results/pytest.xml
 
       - name: Upload pytest report artifact
-        if: ${{ always() && secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' && secrets.TF_STATE_BUCKET != '' && secrets.CANDIDATE_EMAIL != '' && secrets.TEST_USER_PASSWORD != '' && secrets.GITHUB_USER != '' }}
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: pytest-report
@@ -121,7 +102,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Publish pytest report
-        if: ${{ always() && secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' && secrets.TF_STATE_BUCKET != '' && secrets.CANDIDATE_EMAIL != '' && secrets.TEST_USER_PASSWORD != '' && secrets.GITHUB_USER != '' }}
+        if: ${{ always() }}
         uses: dorny/test-reporter@v1
         with:
           name: Pytest Results
@@ -130,7 +111,7 @@ jobs:
           fail-on-error: false
 
       - name: Terraform Destroy (always)
-        if: ${{ always() && secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' && secrets.TF_STATE_BUCKET != '' && secrets.CANDIDATE_EMAIL != '' && secrets.TEST_USER_PASSWORD != '' && secrets.GITHUB_USER != '' }}
+        if: ${{ always() }}
         run: |
           terraform -chdir=terraform destroy \
             -input=false \

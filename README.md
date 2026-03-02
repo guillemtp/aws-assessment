@@ -35,7 +35,7 @@ Edit `.env`:
 
 - `project_name`: project identifier used in resource naming and Terraform state key
 - `candidate_email`: use the same email used with recruiting
-- `github_user`: your GitHub username
+- `REPO_OWNER`: your GitHub username/org (mapped to Terraform `github_user`)
 - `test_user_password`: password for Cognito test user
 - `sns_publish_enabled`: keep `false` for dry run; set `true` only when you want to send verification SNS messages
 
@@ -130,12 +130,16 @@ Includes:
 Required CI secrets for deploy/test/destroy:
 - `AWS_ACCESS_KEY_ID`
 - `AWS_SECRET_ACCESS_KEY`
-- `TF_STATE_BUCKET`
-- `TF_STATE_REGION` (optional, defaults to `us-east-1`)
 - `PROJECT_NAME` (optional, defaults to `aws-assessment`)
 - `CANDIDATE_EMAIL`
 - `TEST_USER_PASSWORD`
-- `GITHUB_USER`
+- `REPO_OWNER` (GitHub username/org used as `github_user` in Terraform payload)
+
+Recommended CI repository variables (non-sensitive):
+- `AWS_REGION` (default `us-east-1`)
+
+The workflow derives backend bucket name automatically as:
+`aws-assessment-ci-tfstate-<account_id>-<AWS_REGION>`.
 
 ## CI bootstrapping (AWS CLI)
 
