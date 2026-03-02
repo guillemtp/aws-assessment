@@ -21,17 +21,17 @@ module "stack_use1" {
     aws = aws.use1
   }
 
-  project_name           = var.project_name
-  region_name            = var.primary_region
-  verification_topic_arn = var.verification_topic_arn
-  candidate_email        = var.candidate_email
-  repo_url               = local.repo_url
-  vpc_cidr               = var.primary_vpc_cidr
-  sns_publish_enabled    = var.sns_publish_enabled
+  project_name                  = var.project_name
+  region_name                   = var.primary_region
+  verification_topic_arn        = var.verification_topic_arn
+  candidate_email               = var.candidate_email
+  repo_url                      = local.repo_url
+  vpc_cidr                      = var.primary_vpc_cidr
+  sns_publish_enabled           = var.sns_publish_enabled
   cloudwatch_log_retention_days = var.cloudwatch_log_retention_days
-  cognito_user_pool_id   = module.auth.user_pool_id
-  cognito_user_client_id = module.auth.user_pool_client_id
-  cognito_issuer         = module.auth.user_pool_issuer
+  cognito_user_pool_id          = module.auth.user_pool_id
+  cognito_user_client_id        = module.auth.user_pool_client_id
+  cognito_issuer                = module.auth.user_pool_issuer
 }
 
 module "stack_euw1" {
@@ -41,15 +41,15 @@ module "stack_euw1" {
     aws = aws.euw1
   }
 
-  project_name           = var.project_name
-  region_name            = var.secondary_region
-  verification_topic_arn = var.verification_topic_arn
-  candidate_email        = var.candidate_email
-  repo_url               = local.repo_url
-  vpc_cidr               = var.secondary_vpc_cidr
-  sns_publish_enabled    = var.sns_publish_enabled
+  project_name                  = var.project_name
+  region_name                   = var.secondary_region
+  verification_topic_arn        = var.verification_topic_arn
+  candidate_email               = var.candidate_email
+  repo_url                      = local.repo_url
+  vpc_cidr                      = var.secondary_vpc_cidr
+  sns_publish_enabled           = var.sns_publish_enabled
   cloudwatch_log_retention_days = var.cloudwatch_log_retention_days
-  cognito_user_pool_id   = module.auth.user_pool_id
-  cognito_user_client_id = module.auth.user_pool_client_id
-  cognito_issuer         = module.auth.user_pool_issuer
+  cognito_user_pool_id          = module.auth.user_pool_id
+  cognito_user_client_id        = module.auth.user_pool_client_id
+  cognito_issuer                = module.auth.user_pool_issuer
 }
