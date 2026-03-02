@@ -18,7 +18,7 @@ All resources are created with the `aws-assessment-ci-*` prefix.
 [source,bash]
 ----
 chmod +x bootstrapping/*.sh
-AWS_PROFILE=<your-aws-profile> AWS_REGION=us-east-1 ./bootstrapping/create_ci_user.sh
+./bootstrapping/create_ci_user.sh
 ----
 
 The script prints:
@@ -32,14 +32,14 @@ Store both values in GitHub Actions secrets.
 
 [source,bash]
 ----
-AWS_PROFILE=<your-aws-profile> AWS_REGION=us-east-1 ./bootstrapping/destroy_ci_user.sh
+./bootstrapping/destroy_ci_user.sh
 ----
 
 == Create S3 Backend For Terraform State
 
 [source,bash]
 ----
-AWS_PROFILE=<your-aws-profile> AWS_REGION=us-east-1 ./bootstrapping/create_tfstate_backend.sh
+./bootstrapping/create_tfstate_backend.sh
 ----
 
 Then update `terraform/backend.hcl` with that bucket value and initialize Terraform:
@@ -60,5 +60,5 @@ Terraform state key format is:
 
 [source,bash]
 ----
-AWS_PROFILE=<your-aws-profile> AWS_REGION=us-east-1 ./bootstrapping/destroy_tfstate_backend.sh
+./bootstrapping/destroy_tfstate_backend.sh
 ----

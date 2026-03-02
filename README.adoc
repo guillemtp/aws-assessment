@@ -42,7 +42,9 @@ This repository implements the Unleash live assessment using Terraform with a mu
 * Docker
 * GNU Make
 * AWS account/sandbox credentials configured locally
-* Python 3.10+ for test script
+* AWS authentication configured using either:
+** An AWS profile (for example, set `AWS_PROFILE` and optionally `AWS_REGION`)
+** Exported environment credentials (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, optional `AWS_SESSION_TOKEN`, and `AWS_REGION`)
 
 == Configure Variables
 
@@ -62,16 +64,51 @@ Edit `.env`:
 
 The Makefile treats `.env` as the single source of truth and generates `terraform.tfvars` automatically (`make tfvars`) before Terraform actions.
 
-== Deploy
+== Bootstrapping
 
-Bootstrap remote state bucket:
+=== Terraform bootstrapping
+
+Create the S3 backend bucket for Terraform state:
 
 [source,bash]
 ----
-AWS_PROFILE=<your-aws-profile> AWS_REGION=us-east-1 ./bootstrapping/create_tfstate_backend.sh
+./bootstrapping/create_tfstate_backend.sh
 ----
 
-Then update `terraform/backend.hcl` with the bucket name printed by the script, and initialize Terraform:
+Then update `terraform/backend.hcl` with the bucket name printed by the script.
+
+To remove the backend bucket when you no longer need it:
+
+[source,bash]
+----
+./bootstrapping/destroy_tfstate_backend.sh
+----
+
+=== CI bootstrapping
+
+Create a limited IAM user for GitHub Actions with prefix `aws-assessment-ci-*`:
+
+[source,bash]
+----
+chmod +x bootstrapping/*.sh
+./bootstrapping/create_ci_user.sh
+----
+
+The script prints credentials that you must store as GitHub Actions secrets:
+
+* `AWS_ACCESS_KEY_ID`
+* `AWS_SECRET_ACCESS_KEY`
+
+To delete all CI IAM resources created by the script:
+
+[source,bash]
+----
+./bootstrapping/destroy_ci_user.sh
+----
+
+== Deploy
+
+Initialize Terraform:
 
 [source,bash]
 ----
@@ -169,36 +206,6 @@ Recommended CI repository variables (non-sensitive):
 * `CANDIDATE_EMAIL`
 * `REPO_OWNER` (GitHub username/org used as `github_user` in Terraform payload)
 * `AWS_REGION` (default `us-east-1`)
-
-== CI Bootstrapping (AWS CLI)
-
-If you want to create a limited IAM user for GitHub Actions with prefix `aws-assessment-ci-*`, use:
-
-[source,bash]
-----
-chmod +x bootstrapping/*.sh
-AWS_PROFILE=<your-aws-profile> AWS_REGION=us-east-1 ./bootstrapping/create_ci_user.sh
-----
-
-The script prints credentials that you must store as GitHub Actions secrets:
-
-* `AWS_ACCESS_KEY_ID`
-* `AWS_SECRET_ACCESS_KEY`
-
-To delete all CI IAM resources created by the script:
-
-[source,bash]
-----
-AWS_PROFILE=<your-aws-profile> AWS_REGION=us-east-1 ./bootstrapping/destroy_ci_user.sh
-----
-
-To create and remove the Terraform remote-state bucket:
-
-[source,bash]
-----
-AWS_PROFILE=<your-aws-profile> AWS_REGION=us-east-1 ./bootstrapping/create_tfstate_backend.sh
-AWS_PROFILE=<your-aws-profile> AWS_REGION=us-east-1 ./bootstrapping/destroy_tfstate_backend.sh
-----
 
 == Important: Tear Down After Validation
 
