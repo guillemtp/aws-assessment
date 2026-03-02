@@ -38,6 +38,7 @@ Edit `.env`:
 - `REPO_OWNER`: your GitHub username/org (mapped to Terraform `github_user`)
 - `test_user_password`: password for Cognito test user
 - `sns_publish_enabled`: keep `false` for dry run; set `true` only when you want to send verification SNS messages
+- `cloudwatch_log_retention_days`: CloudWatch log retention in days (default `1`, minimum)
 
 The Makefile treats `.env` as the single source of truth and generates `terraform.tfvars` automatically (`make tfvars`) before Terraform actions.
 

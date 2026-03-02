@@ -89,6 +89,11 @@ resource "aws_lambda_function" "greeter" {
   }
 }
 
+resource "aws_cloudwatch_log_group" "greeter" {
+  name              = "/aws/lambda/${aws_lambda_function.greeter.function_name}"
+  retention_in_days = var.cloudwatch_log_retention_days
+}
+
 resource "aws_vpc" "this" {
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
@@ -155,7 +160,7 @@ resource "aws_ecs_cluster" "this" {
 
 resource "aws_cloudwatch_log_group" "ecs" {
   name              = "/ecs/${local.name_prefix}-publisher"
-  retention_in_days = 7
+  retention_in_days = var.cloudwatch_log_retention_days
 }
 
 resource "aws_iam_role" "ecs_execution" {
@@ -331,6 +336,11 @@ resource "aws_lambda_function" "dispatcher" {
       SNS_PUBLISH_ENABLED = local.sns_publish_enabled_value
     }
   }
+}
+
+resource "aws_cloudwatch_log_group" "dispatcher" {
+  name              = "/aws/lambda/${aws_lambda_function.dispatcher.function_name}"
+  retention_in_days = var.cloudwatch_log_retention_days
 }
 
 resource "aws_apigatewayv2_api" "this" {

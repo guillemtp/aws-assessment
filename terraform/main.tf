@@ -28,6 +28,7 @@ module "stack_use1" {
   repo_url               = local.repo_url
   vpc_cidr               = var.primary_vpc_cidr
   sns_publish_enabled    = var.sns_publish_enabled
+  cloudwatch_log_retention_days = var.cloudwatch_log_retention_days
   cognito_user_pool_id   = module.auth.user_pool_id
   cognito_user_client_id = module.auth.user_pool_client_id
   cognito_issuer         = module.auth.user_pool_issuer
@@ -47,6 +48,7 @@ module "stack_euw1" {
   repo_url               = local.repo_url
   vpc_cidr               = var.secondary_vpc_cidr
   sns_publish_enabled    = var.sns_publish_enabled
+  cloudwatch_log_retention_days = var.cloudwatch_log_retention_days
   cognito_user_pool_id   = module.auth.user_pool_id
   cognito_user_client_id = module.auth.user_pool_client_id
   cognito_issuer         = module.auth.user_pool_issuer

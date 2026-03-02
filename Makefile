@@ -12,6 +12,7 @@ TEST_RESULTS_DIR ?= test-results
 BACKEND_CONFIG ?= backend.hcl
 PROJECT_NAME ?= aws-assessment
 SNS_PUBLISH_ENABLED ?= false
+CLOUDWATCH_LOG_RETENTION_DAYS ?= 1
 
 BACKEND_CONFIG_IN_TF_DIR := $(patsubst $(TERRAFORM_DIR)/%,%,$(BACKEND_CONFIG))
 
@@ -27,9 +28,10 @@ TEST_USERNAME := $(call strip_quotes,$(TEST_USERNAME))
 TEST_PASSWORD := $(call strip_quotes,$(TEST_PASSWORD))
 AWS_PROFILE := $(call strip_quotes,$(AWS_PROFILE))
 BACKEND_CONFIG := $(call strip_quotes,$(BACKEND_CONFIG))
+CLOUDWATCH_LOG_RETENTION_DAYS := $(call strip_quotes,$(CLOUDWATCH_LOG_RETENTION_DAYS))
 
 export AWS_PROFILE AWS_REGION AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
-export BACKEND_CONFIG PROJECT_NAME SNS_PUBLISH_ENABLED
+export BACKEND_CONFIG PROJECT_NAME SNS_PUBLISH_ENABLED CLOUDWATCH_LOG_RETENTION_DAYS
 export CANDIDATE_EMAIL REPO_OWNER TEST_USER_PASSWORD TEST_USERNAME TEST_PASSWORD TFVARS_FILE OUTPUTS_JSON TF_DOCKER_IMAGE
 
 TF_DOCKER_BASE = docker run --rm \
@@ -76,6 +78,7 @@ help:
 	@echo "  BACKEND_CONFIG=backend.hcl (or terraform/backend.hcl) -> remote S3 backend config file"
 	@echo "  PROJECT_NAME=aws-assessment -> used for both resource names and state key"
 	@echo "  CANDIDATE_EMAIL/REPO_OWNER/TEST_USER_PASSWORD -> required for tfvars generation"
+	@echo "  CLOUDWATCH_LOG_RETENTION_DAYS=1 -> CloudWatch logs retention (days)"
 
 tfvars:
 	@test -n "$(PROJECT_NAME)" || (echo "PROJECT_NAME is required" && exit 1)
@@ -90,6 +93,7 @@ tfvars:
 		echo "github_user            = \"`esc "$(REPO_OWNER)"`\""; \
 		echo "test_user_password     = \"`esc "$(TEST_USER_PASSWORD)"`\""; \
 		echo "sns_publish_enabled    = $(SNS_PUBLISH_ENABLED)"; \
+		echo "cloudwatch_log_retention_days = $(CLOUDWATCH_LOG_RETENTION_DAYS)"; \
 		if [ -n "$(AWS_PROFILE)" ]; then echo "aws_profile            = \"`esc "$(AWS_PROFILE)"`\""; fi; \
 	} > "$(TFVARS_FILE)"
 

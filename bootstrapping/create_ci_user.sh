@@ -91,6 +91,7 @@ cat > "${tmp_policy_file}" <<POLICY
       "Effect": "Allow",
       "Action": [
         "iam:CreateRole","iam:DeleteRole","iam:GetRole","iam:UpdateAssumeRolePolicy","iam:TagRole","iam:UntagRole",
+        "iam:ListInstanceProfilesForRole",
         "iam:PutRolePolicy","iam:DeleteRolePolicy","iam:GetRolePolicy","iam:ListRolePolicies",
         "iam:AttachRolePolicy","iam:DetachRolePolicy","iam:ListAttachedRolePolicies",
         "iam:CreatePolicy","iam:DeletePolicy","iam:GetPolicy","iam:GetPolicyVersion","iam:CreatePolicyVersion","iam:DeletePolicyVersion","iam:ListPolicyVersions",
@@ -113,12 +114,23 @@ POLICY
 
 if aws iam get-policy --policy-arn "${POLICY_ARN}" >/dev/null 2>&1; then
   echo "Policy already exists, creating a new default version."
+  # IAM managed policies support at most 5 versions.
+  # Delete the oldest non-default version before creating a new one if needed.
+  versions_json="$(aws iam list-policy-versions --policy-arn "${POLICY_ARN}")"
+  versions_count="$(echo "${versions_json}" | jq '.Versions | length')"
+  if [ "${versions_count}" -ge 5 ]; then
+    oldest_non_default="$(echo "${versions_json}" | jq -r '.Versions | map(select(.IsDefaultVersion == false)) | sort_by(.CreateDate) | .[0].VersionId')"
+    if [ "${oldest_non_default}" != "null" ]; then
+      aws iam delete-policy-version --policy-arn "${POLICY_ARN}" --version-id "${oldest_non_default}" >/dev/null
+    fi
+  fi
+
   aws iam create-policy-version \
     --policy-arn "${POLICY_ARN}" \
     --policy-document "file://${tmp_policy_file}" \
     --set-as-default >/dev/null
 
-  # Keep at most 5 policy versions by deleting the oldest non-default version.
+  # Optional cleanup after update (keeps policy tidy).
   versions_json="$(aws iam list-policy-versions --policy-arn "${POLICY_ARN}")"
   versions_count="$(echo "${versions_json}" | jq '.Versions | length')"
   if [ "${versions_count}" -gt 4 ]; then

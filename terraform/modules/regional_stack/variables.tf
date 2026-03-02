@@ -37,3 +37,7 @@ variable "vpc_cidr" {
 variable "sns_publish_enabled" {
   type = bool
 }
+
+variable "cloudwatch_log_retention_days" {
+  type = number
+}
