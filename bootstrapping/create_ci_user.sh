@@ -6,7 +6,7 @@ set -euo pipefail
 
 # Required: valid AWS credentials with IAM admin privileges.
 # Optional env vars:
-# - AWS_PROFILE (example: personal-admin)
+# - AWS_PROFILE (example: <your-aws-profile>)
 # - AWS_REGION  (default: us-east-1)
 
 export AWS_REGION="${AWS_REGION:-us-east-1}"

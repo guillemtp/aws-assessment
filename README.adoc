@@ -68,7 +68,7 @@ Bootstrap remote state bucket:
 
 [source,bash]
 ----
-AWS_PROFILE=personal-admin AWS_REGION=us-east-1 ./bootstrapping/create_tfstate_backend.sh
+AWS_PROFILE=<your-aws-profile> AWS_REGION=us-east-1 ./bootstrapping/create_tfstate_backend.sh
 ----
 
 Then update `terraform/backend.hcl` with the bucket name printed by the script, and initialize Terraform:
@@ -177,7 +177,7 @@ If you want to create a limited IAM user for GitHub Actions with prefix `aws-ass
 [source,bash]
 ----
 chmod +x bootstrapping/*.sh
-AWS_PROFILE=personal-admin AWS_REGION=us-east-1 ./bootstrapping/create_ci_user.sh
+AWS_PROFILE=<your-aws-profile> AWS_REGION=us-east-1 ./bootstrapping/create_ci_user.sh
 ----
 
 The script prints credentials that you must store as GitHub Actions secrets:
@@ -189,15 +189,15 @@ To delete all CI IAM resources created by the script:
 
 [source,bash]
 ----
-AWS_PROFILE=personal-admin AWS_REGION=us-east-1 ./bootstrapping/destroy_ci_user.sh
+AWS_PROFILE=<your-aws-profile> AWS_REGION=us-east-1 ./bootstrapping/destroy_ci_user.sh
 ----
 
 To create and remove the Terraform remote-state bucket:
 
 [source,bash]
 ----
-AWS_PROFILE=personal-admin AWS_REGION=us-east-1 ./bootstrapping/create_tfstate_backend.sh
-AWS_PROFILE=personal-admin AWS_REGION=us-east-1 ./bootstrapping/destroy_tfstate_backend.sh
+AWS_PROFILE=<your-aws-profile> AWS_REGION=us-east-1 ./bootstrapping/create_tfstate_backend.sh
+AWS_PROFILE=<your-aws-profile> AWS_REGION=us-east-1 ./bootstrapping/destroy_tfstate_backend.sh
 ----
 
 == Important: Tear Down After Validation
