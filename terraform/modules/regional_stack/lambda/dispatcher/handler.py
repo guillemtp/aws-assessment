@@ -10,8 +10,15 @@ ecs = boto3.client("ecs")
 def handler(event, context):
     region = os.environ["AWS_REGION"]
     sns_publish_enabled = os.environ.get("SNS_PUBLISH_ENABLED", "false").lower() == "true"
+    payload = {
+        "email": os.environ["CANDIDATE_EMAIL"],
+        "source": "ECS",
+        "region": region,
+        "repo": os.environ["REPO_URL"],
+    }
 
     if not sns_publish_enabled:
+        print(f"SNS dry run payload: {json.dumps(payload, separators=(',', ':'))}")
         return {
             "statusCode": 200,
             "headers": {"Content-Type": "application/json"},

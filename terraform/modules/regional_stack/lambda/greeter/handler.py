@@ -38,6 +38,8 @@ def handler(event, context):
             TopicArn=os.environ["VERIFICATION_TOPIC_ARN"],
             Message=json.dumps(payload),
         )
+    else:
+        print(f"SNS dry run payload: {json.dumps(payload, separators=(',', ':'))}")
 
     return {
         "statusCode": 200,

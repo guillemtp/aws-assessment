@@ -230,7 +230,7 @@ resource "aws_ecs_task_definition" "publisher" {
       command = [
         "/bin/sh",
         "-c",
-        "if [ \"$SNS_PUBLISH_ENABLED\" = \"true\" ]; then PAYLOAD=$(printf '{\\\"email\\\":\\\"%s\\\",\\\"source\\\":\\\"ECS\\\",\\\"region\\\":\\\"%s\\\",\\\"repo\\\":\\\"%s\\\"}' \"$EMAIL\" \"$EXEC_REGION\" \"$REPO_URL\"); aws sns publish --topic-arn \"$TOPIC_ARN\" --message \"$PAYLOAD\" --region \"$EXEC_REGION\"; else echo \"SNS dry run enabled - skipping publish\"; fi"
+        "PAYLOAD=$(printf '{\\\"email\\\":\\\"%s\\\",\\\"source\\\":\\\"ECS\\\",\\\"region\\\":\\\"%s\\\",\\\"repo\\\":\\\"%s\\\"}' \"$EMAIL\" \"$EXEC_REGION\" \"$REPO_URL\"); if [ \"$SNS_PUBLISH_ENABLED\" = \"true\" ]; then aws sns publish --topic-arn \"$TOPIC_ARN\" --message \"$PAYLOAD\" --region \"$EXEC_REGION\"; else echo \"SNS dry run payload: $PAYLOAD\"; fi"
       ]
       essential = true
       environment = [
