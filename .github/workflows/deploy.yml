@@ -46,7 +46,7 @@ jobs:
         with:
           working_directory: terraform
           format: sarif
-          sarif_file: terraform/tfsec.sarif
+          sarif_file: tfsec.sarif
           soft_fail: true
 
       - name: Upload tfsec SARIF to Code Scanning
