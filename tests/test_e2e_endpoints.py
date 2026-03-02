@@ -1,7 +1,7 @@
-import concurrent.futures
 import time
 
 import httpx
+import pytest
 
 
 def _call_api(region, method, url, token):
@@ -23,12 +23,6 @@ def _call_api(region, method, url, token):
     return region, response.status_code, elapsed_ms, payload
 
 
-def _run_concurrently(plan, token):
-    with concurrent.futures.ThreadPoolExecutor(max_workers=len(plan)) as executor:
-        futures = [executor.submit(_call_api, region, method, url, token) for region, method, url in plan]
-        return [f.result() for f in concurrent.futures.as_completed(futures)]
-
-
 def _assert_region(expected_region, payload):
     actual_region = payload.get("region")
     assert actual_region == expected_region, (
@@ -36,18 +30,23 @@ def _assert_region(expected_region, payload):
     )
 
 
-def test_greet_and_dispatch_endpoints(endpoints, id_token):
-    greet_plan = [(region, "GET", f"{url}/greet") for region, url in endpoints.items()]
-    dispatch_plan = [(region, "POST", f"{url}/dispatch") for region, url in endpoints.items()]
+@pytest.mark.parametrize("region", ["us-east-1", "eu-west-1"])
+def test_greet_endpoint_by_region(endpoints, id_token, region):
+    base_url = endpoints.get(region)
+    assert base_url, f"Missing API endpoint for region {region}. Available: {sorted(endpoints.keys())}"
 
-    greet_results = _run_concurrently(greet_plan, id_token)
-    for region, status, latency_ms, payload in sorted(greet_results):
-        assert status == 200, f"/greet failed in {region}: status={status} payload={payload}"
-        _assert_region(region, payload)
-        print(f"[pytest:greet] region={region} status={status} latency_ms={latency_ms:.2f} payload={payload}")
+    _, status, latency_ms, payload = _call_api(region, "GET", f"{base_url}/greet", id_token)
+    assert status == 200, f"/greet failed in {region}: status={status} payload={payload}"
+    _assert_region(region, payload)
+    print(f"[pytest:greet] region={region} status={status} latency_ms={latency_ms:.2f} payload={payload}")
 
-    dispatch_results = _run_concurrently(dispatch_plan, id_token)
-    for region, status, latency_ms, payload in sorted(dispatch_results):
-        assert status == 200, f"/dispatch failed in {region}: status={status} payload={payload}"
-        _assert_region(region, payload)
-        print(f"[pytest:dispatch] region={region} status={status} latency_ms={latency_ms:.2f} payload={payload}")
+
+@pytest.mark.parametrize("region", ["us-east-1", "eu-west-1"])
+def test_dispatch_endpoint_by_region(endpoints, id_token, region):
+    base_url = endpoints.get(region)
+    assert base_url, f"Missing API endpoint for region {region}. Available: {sorted(endpoints.keys())}"
+
+    _, status, latency_ms, payload = _call_api(region, "POST", f"{base_url}/dispatch", id_token)
+    assert status == 200, f"/dispatch failed in {region}: status={status} payload={payload}"
+    _assert_region(region, payload)
+    print(f"[pytest:dispatch] region={region} status={status} latency_ms={latency_ms:.2f} payload={payload}")
