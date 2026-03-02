@@ -1,0 +1,12 @@
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+crash.log
+terraform/terraform.tfvars
+outputs.json
+test-results/
+__pycache__/
+.env
+terraform/modules/regional_stack/greeter.zip
+terraform/modules/regional_stack/dispatcher.zip

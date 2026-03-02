@@ -1,0 +1,8 @@
+.git
+.terraform
+.venv
+__pycache__
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+outputs.json
