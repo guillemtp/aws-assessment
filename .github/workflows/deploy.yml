@@ -19,9 +19,9 @@ jobs:
       AWS_REGION: ${{ vars.AWS_REGION != '' && vars.AWS_REGION || 'us-east-1' }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      CANDIDATE_EMAIL: ${{ secrets.CANDIDATE_EMAIL }}
+      CANDIDATE_EMAIL: ${{ vars.CANDIDATE_EMAIL }}
       TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
-      REPO_OWNER: ${{ secrets.REPO_OWNER }}
+      REPO_OWNER: ${{ vars.REPO_OWNER }}
       SNS_PUBLISH_ENABLED: "false"
       HAS_AWS_CREDS: ${{ secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' }}
 
