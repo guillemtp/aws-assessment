@@ -69,6 +69,7 @@ jobs:
             -out=tfplan
 
       - name: Terraform Apply
+        id: tf_apply
         run: terraform -chdir=terraform apply -input=false -auto-approve tfplan
 
       - name: Export Terraform Outputs
@@ -94,7 +95,6 @@ jobs:
             --junitxml test-results/pytest.xml
 
       - name: Upload pytest report artifact
-        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: pytest-report
@@ -102,7 +102,6 @@ jobs:
           if-no-files-found: ignore
 
       - name: Publish pytest report
-        if: ${{ always() }}
         uses: dorny/test-reporter@v1
         with:
           name: Pytest Results
@@ -111,8 +110,11 @@ jobs:
           fail-on-error: false
 
       - name: Terraform Destroy (always)
-        if: ${{ always() }}
+        if: ${{ always() && steps.tf_apply.outcome != 'skipped' }}
         run: |
+          terraform -chdir=terraform init -reconfigure \
+            -backend-config=backend.hcl \
+            -backend-config="key=${{ env.PROJECT_NAME }}/terraform.tfstate"
           terraform -chdir=terraform destroy \
             -input=false \
             -auto-approve
